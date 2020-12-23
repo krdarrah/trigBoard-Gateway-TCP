@@ -8,7 +8,7 @@ void notFound(AsyncWebServerRequest *request) {
 
 void initAP() {
   WiFi.enableAP(true);
-  Serial.println(WiFi.softAP("ssid", "password", 1, 1, 8)); //ssid,pw,ch,hid,conn
+  Serial.println(WiFi.softAP("SSID", "password", 1, 1, 8)); //ssid,pw,ch,hid,conn
   //pw at least 8 char!
   IPAddress myIP = WiFi.softAPIP();
   Serial.print("AP IP address: ");
@@ -53,6 +53,7 @@ void initAP() {
             char *tokenTime =  strtok(parsedStrings[0], timeStampDelimiter);
             strncpy(parsedStrings[0], tokenTime, sizeof(parsedStrings[0]));//first one
           }
+          strcat(parsedStrings[0], "#");
           particle.print(parsedStrings[0]);//goes to particle
           Serial.println(parsedStrings[0]);//What was sent
           sprintf(monitorMessage, "#%s,%li", parsedStrings[1], millis());
