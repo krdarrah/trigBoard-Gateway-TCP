@@ -9,7 +9,8 @@ void setup() {
   pinMode(LEDpin, OUTPUT);
   digitalWrite(LEDpin, HIGH);
   Serial.begin(115200);
-  particle.begin(9600);
+  //particle.begin(9600);
+  particle.begin(57600, SWSERIAL_8N1, particleRX, particleTX, false, 95, 11);
   delay(500);
 
   pinMode(0, OUTPUT);
@@ -19,4 +20,5 @@ void setup() {
 }
 
 void loop() {
+
 }

@@ -8,7 +8,7 @@ void notFound(AsyncWebServerRequest *request) {
 
 void initAP() {
   WiFi.enableAP(true);
-  Serial.println(WiFi.softAP("SSID", "password", 1, 1, 8)); //ssid,pw,ch,hid,conn
+  Serial.println(WiFi.softAP("someSSID", "somePassword", 1, 1, 8)); //ssid,pw,ch,hid,conn
   //pw at least 8 char!
   IPAddress myIP = WiFi.softAPIP();
   Serial.print("AP IP address: ");
@@ -33,11 +33,11 @@ void initAP() {
       if (strcmp(oldPacketReceived, newPacket) != 0) {
         duplicateCount = 0;
         strcpy(oldPacketReceived, newPacket);
+        char parsedStrings[3][100];
         //sniff out for -#-
         const char delimiter[] = "-";
         char *pointerToFoundDash = strstr(newPacket, delimiter);//go find dash
         if (pointerToFoundDash != NULL) {//found a dash
-          char parsedStrings[3][100];
           char *token =  strtok(newPacket, delimiter);
           strncpy(parsedStrings[0], token, sizeof(parsedStrings[0]));//first one
           token =  strtok(NULL, delimiter);
@@ -46,19 +46,24 @@ void initAP() {
           strncpy(parsedStrings[2], token, sizeof(parsedStrings[1]));//last part
           //now going to recombine two strings
           strcat(parsedStrings[0], parsedStrings[2]);
-          const char timeStampDelimiter[] = "$$$";//now strip off that $$$ and timestamp
-          char *pointerToFoundDash = strstr(parsedStrings[0], timeStampDelimiter);//go find $$$
-          if (pointerToFoundDash != NULL) {//found a dash
-            //char parsedTimeStrings[2][50];
-            char *tokenTime =  strtok(parsedStrings[0], timeStampDelimiter);
-            strncpy(parsedStrings[0], tokenTime, sizeof(parsedStrings[0]));//first one
-          }
-          strcat(parsedStrings[0], "#");
-          particle.print(parsedStrings[0]);//goes to particle
-          Serial.println(parsedStrings[0]);//What was sent
           sprintf(monitorMessage, "#%s,%li", parsedStrings[1], millis());
           //Serial.printf("Message for Monitor: %s\n", monitorMessage);
+        } else {
+          strcpy(parsedStrings[0], newPacket);
         }
+
+        const char timeStampDelimiter[] = "$$$";//now strip off that $$$ and timestamp
+        char *pointerToTimeStamp = strstr(parsedStrings[0], timeStampDelimiter);//go find $$$
+        if (pointerToTimeStamp != NULL) {//found a dash
+          //char parsedTimeStrings[2][50];
+          char *tokenTime =  strtok(parsedStrings[0], timeStampDelimiter);
+          strncpy(parsedStrings[0], tokenTime, sizeof(parsedStrings[0]));//first one
+        }
+        strcat(parsedStrings[0], "#");
+        particle.write(parsedStrings[0], strlen(parsedStrings[0]));//goes to particle
+        Serial.println(parsedStrings[0]);//What was sent
+
+
         //Serial.println(message);
 
       }
@@ -89,7 +94,7 @@ void initAP() {
       request->send(200, "text/plain", monitorMessage);
     } else {
       message = "silence";
-      //Serial.println("Monitor is Silenced");
+      Serial.println("Monitor is Silenced");
       request->send(200, "text/plain", message);
     }
 
